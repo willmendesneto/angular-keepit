@@ -38,13 +38,13 @@ In your app, you inject keepit and use it like this:
 If kept data you want to keep isbound to a scope, it can be automatically refreshed. In your controller:
 ```javascript
   myCacheModule = KeepIt.getModule('SomeCacheID',KeepIt.types.PERSITENT); 
-  $scope.whateverModel = myCacheModule.getValue("myModel");
-  myCacheModule.syncToModel("myModel",$scope,"whateverModel");
+  $scope.whateverModel = myCacheModule.getValue("myCacheKey");
+  myCacheModule.syncToModel("myCacheKey",$scope,"whateverModel");
   
 ```
 In background, all it does is creating a $watch expression on the scope and update the cache accordingly.
 
-## What is necessary to create my how cache interface?
+## What is necessary to create my own cache interface?
 
 (todo : add link to KeepItCacheFactoryService.js File)
 look for KeepItCacheFactoryService.js which is one of the simplest implementation I have, and it uses $cacheFactory which is well known to angular enthousiasts.
