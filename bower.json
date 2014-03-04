@@ -1,0 +1,7 @@
+{
+   "name" : "angular-keepit",
+   "version" : "0.1.0",
+   "devDependencies" : {
+      "angular" : "1.2.14"
+   }
+}
