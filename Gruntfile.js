@@ -14,21 +14,30 @@ module.exports = function (grunt) {
       ngmin: {
          module: {
             src: [  "src/KeepIt.js" ],
-            dest: "dist/KeepIt.min.js"
+            dest: "dist/KeepIt.ngmin.js"
          },
          localStorage:{
             src: [  "src/Interfaces/KeepItCacheFactoryService.js"],
-            dest: "dist/KeepItCacheFactoryService.js"
+            dest: "dist/KeepItCacheFactoryService.ngmin.js"
          },
          cacheFactory:{
             src: [  "src/Interfaces/KeepItLocalStorageService.js"],
-            dest: "dist/KeepItLocalStorageService.js"
+            dest: "dist/KeepItLocalStorageService.ngmin.js"
 
+         }
+      },
+      uglify: {
+         my_target: {
+            files: {
+               'dist/KeepIt.min.js': ['dist/KeepIt.ngmin.js'],
+               'dist/KeepItCacheFactoryService.min.js': ['dist/KeepItCacheFactoryService.ngmin.js'],
+               'dist/KeepItLocalStorageService.min.js': ['dist/KeepItLocalStorageService.ngmin.js']
+            }
          }
       },
       watch: {
          normal: {
-            files: ['src/***'],
+            files: ['src/**.js'],
             tasks: ['default']
          }
       }
@@ -40,6 +49,6 @@ module.exports = function (grunt) {
    grunt.loadNpmTasks('grunt-contrib-watch');
 
    // Default task(s).
-   grunt.registerTask('default', ['ngmin']);
+   grunt.registerTask('default', ['ngmin','uglify']);
    grunt.registerTask('watch', ['watch:normal']);
 };
