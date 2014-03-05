@@ -38,7 +38,6 @@ angular.module("KeepIt",[]).provider("KeepIt",
                     //return false;
                 }
 
-
                 return true;
             }
 
@@ -172,7 +171,14 @@ angular.module("KeepIt",[]).provider("KeepIt",
                                         },
             timedExpiryCheckCycle       : 60 * 1000,// cycle frequency on which the ttl's are verified, if type is expiryCheckMethods.TIMED
             defaultExpiryCheckMethod    : null,
-
+            types                       :{
+                                             MEMORY: 1,
+                                             PERSISTENT: 2
+                                          },
+            registeredModules : {},
+            registerModule:function(moduleName,type){
+                KeepItProvider.registeredModules[type] = moduleName;
+            },
             /**
              * Used to manually check expired cache. fastForward is a delay in seconds for which
              * we want to invalidate expiry in the future. This is specially useful for test cases
@@ -212,8 +218,6 @@ angular.module("KeepIt",[]).provider("KeepIt",
                 $injector){
 
                 var KeepItService;
-
-
 
                 /**
                  * Create a cache that is stored in memory. Refreshing the app will clear it
@@ -259,18 +263,10 @@ angular.module("KeepIt",[]).provider("KeepIt",
 
                 }
 
-
-
-
                 KeepItService = {
                     //expose provider settings to the service API
                     expiryCheckMethods      : KeepItProvider.expiryCheckMethods,
-
-                    //todo should we have a 3rd type specifically for phonegap apps ? (since standard localStorage is not completly persistent on iOS, we might use phonegap specific when possible like FileAPI)
-                    types                   :{  MEMORY: 1,
-                                                PERSISTENT: 2
-                                            },
-
+                    types                   : KeepItProvider.types,
                     /**
                      * Return the module bound to the cacheId, or create it if not existing.
                      * @param cacheId
@@ -285,19 +281,12 @@ angular.module("KeepIt",[]).provider("KeepIt",
 
                         //create cache module if does not exist
                         if (angular.isUndefined(modules[cacheId])){
-                            switch(type){
+                            var moduleName = KeepItProvider.registeredModules[type];
 
-                                case KeepItService.types.MEMORY:
-                                    modules[cacheId] = createInMemoryCache(cacheId,type);
-                                    break;
-                                case KeepItService.types.PERSISTENT:
-                                    modules[cacheId] = createPersistentCache(cacheId,type);
-                                    break;
-                                default:
-                                    throw("unrecognized cache type");
-                                    return;
-
-                            }
+                            $injector.invoke([moduleName,function(CacheModule){
+                                modules[cacheId] = new CacheInterface(cacheId,type );
+                                angular.extend( modules[cacheId], new CacheModule(cacheId));
+                            }]);
 
                         }else if (modules[cacheId].type !== type){
                             throw ("The cache module your are trying to get already exists but is of a different type: " +
@@ -329,7 +318,6 @@ angular.module("KeepIt",[]).provider("KeepIt",
 
                 return KeepItService;
             }
-
 
         };
 
