@@ -4,7 +4,6 @@
  */
 angular.module('KeepIt', []).provider('KeepIt', function () {
   var KeepItProvider, modules = {};
-  window._modules = modules;
   /**
         * This is the starting point for implementing a cache module. This objects has to be extended by
         * any cache module.
@@ -136,6 +135,15 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
     },
     timedExpiryCheckCycle: 60 * 1000,
     defaultExpiryCheckMethod: null,
+    types: {
+      MEMORY: 1,
+      PERSISTENT: 2
+    },
+    registeredModules: {},
+    registerModule: function (moduleName, type) {
+      console.log(type + ' - ' + moduleName);
+      KeepItProvider.registeredModules[type] = moduleName;
+    },
     invalidateCache: function () {
       angular.forEach(modules, function (module, cacheId) {
         var keys = module.getAllKeys();
@@ -161,69 +169,23 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
       '$injector',
       function ($interval, $rootScope, $injector) {
         var KeepItService;
-        /**
-                 * Create a cache that is stored in memory. Refreshing the app will clear it
-                 * @param cacheId
-                 * @param type
-                 * @returns {CacheInterface}
-                 */
-        function createInMemoryCache(cacheId, type) {
-          var cache = null;
-          try {
-            $injector.invoke([
-              'KeepItCacheFactoryService',
-              function (KeepItCacheFactoryService) {
-                cache = new CacheInterface(cacheId, type);
-                angular.extend(cache, KeepItCacheFactoryService(cacheId));
-              }
-            ]);
-          } catch (e) {
-            throw 'Failed to use In Memory Cache. Loading KeepItCacheFactoryService failed - is it included ?';
-          }
-          return cache;
-        }
-        /**
-                 * Create a cache that is persisted to disk, still available after an app refresh
-                 * @param cacheId
-                 */
-        function createPersistentCache(cacheId, type) {
-          var cache = null;
-          try {
-            $injector.invoke([
-              'KeepItLocalStorageService',
-              function (KeepItLocalStorageService) {
-                cache = new CacheInterface(cacheId, type);
-                angular.extend(cache, KeepItLocalStorageService(cacheId));
-              }
-            ]);
-          } catch (e) {
-            throw 'Failed to use Persistent Cache. Loading KeepItLocalStorageService failed - is it included ?';
-          }
-          return cache;
-        }
         KeepItService = {
           expiryCheckMethods: KeepItProvider.expiryCheckMethods,
-          types: {
-            MEMORY: 1,
-            PERSISTENT: 2
-          },
+          types: KeepItProvider.types,
           getModule: function (cacheId, type) {
             if (angular.isUndefined(type)) {
               type = KeepItService.types.MEMORY;
             }
             //create cache module if does not exist
             if (angular.isUndefined(modules[cacheId])) {
-              switch (type) {
-              case KeepItService.types.MEMORY:
-                modules[cacheId] = createInMemoryCache(cacheId, type);
-                break;
-              case KeepItService.types.PERSISTENT:
-                modules[cacheId] = createPersistentCache(cacheId, type);
-                break;
-              default:
-                throw 'unrecognized cache type';
-                return;
-              }
+              var moduleName = KeepItProvider.registeredModules[type];
+              $injector.invoke([
+                moduleName,
+                function (CacheModule) {
+                  modules[cacheId] = new CacheInterface(cacheId, type);
+                  angular.extend(modules[cacheId], new CacheModule(cacheId));
+                }
+              ]);
             } else if (modules[cacheId].type !== type) {
               throw 'The cache module your are trying to get already exists but is of a different type: ' + modules[cacheId].type + ' (asking for + ' + KeepItService.types[type] + ')';  //return;
             }
@@ -239,8 +201,8 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
           invalidateCacheKey: KeepItProvider.invalidateCacheKey
         };
         /**
-        * checks all timed expiry cache module and invalidate them when expireOn is reached
-        */
+                 * checks all timed expiry cache module and invalidate them when expireOn is reached
+                 */
         (function initTimedExpiryCheck() {
           $interval(KeepItProvider.invalidateCache, KeepItProvider.timedExpiryCheckCycle);
         }());
