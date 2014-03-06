@@ -9,7 +9,7 @@ angular.module("KeepIt",[]).provider("KeepIt",
         var KeepItProvider,
             modules = {};
 
-        window._modules = modules;
+
        /**
         * This is the starting point for implementing a cache module. This objects has to be extended by
         * any cache module.
@@ -177,7 +177,9 @@ angular.module("KeepIt",[]).provider("KeepIt",
                                           },
             registeredModules : {},
             registerModule:function(moduleName,type){
+                console.log(type + " - " + moduleName)
                 KeepItProvider.registeredModules[type] = moduleName;
+
             },
             /**
              * Used to manually check expired cache. fastForward is a delay in seconds for which
@@ -218,50 +220,6 @@ angular.module("KeepIt",[]).provider("KeepIt",
                 $injector){
 
                 var KeepItService;
-
-                /**
-                 * Create a cache that is stored in memory. Refreshing the app will clear it
-                 * @param cacheId
-                 * @param type
-                 * @returns {CacheInterface}
-                 */
-                function createInMemoryCache(cacheId,type){
-                    var cache = null;
-
-                    try{
-                      $injector.invoke(['KeepItCacheFactoryService',function(KeepItCacheFactoryService){
-                        cache = new CacheInterface(cacheId,type );
-                        angular.extend( cache, KeepItCacheFactoryService(cacheId));
-                      }]);
-                    }
-                    catch(e){
-                      throw ("Failed to use In Memory Cache. Loading KeepItCacheFactoryService failed - is it included ?");
-                    }
-
-                    return cache;
-                }
-
-                /**
-                 * Create a cache that is persisted to disk, still available after an app refresh
-                 * @param cacheId
-                 */
-                function createPersistentCache(cacheId,type){
-
-                    var cache = null;
-
-                    try{
-                      $injector.invoke(['KeepItLocalStorageService',function(KeepItLocalStorageService){
-                        cache = new CacheInterface(cacheId,type );
-                        angular.extend(cache,KeepItLocalStorageService(cacheId));
-                      }]);
-                    }
-                    catch(e){
-                      throw ("Failed to use Persistent Cache. Loading KeepItLocalStorageService failed - is it included ?");
-                    }
-
-                    return cache;
-
-                }
 
                 KeepItService = {
                     //expose provider settings to the service API

@@ -2,6 +2,7 @@
    "name" : "angular-keepit",
    "version" : "0.1.0",
    "devDependencies" : {
-      "angular" : "1.2.14"
+      "angular" : "1.2.14",
+      "angular-mocks" : "1.2.14"
    }
 }

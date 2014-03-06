@@ -1,12 +1,14 @@
 angular.module("KeepIt").provider("KeepItCacheFactoryService",
    function (KeepItProvider){
 
-      KeepItProvider.registerModule("KeepItCacheFactoryService",KeepItProvider.types.IN_MEMORY);
+
 
       return {
 
          $get:function(
             $cacheFactory){
+            console.log("ICI");
+            KeepItProvider.registerModule("KeepItCacheFactoryService",KeepItProvider.types.IN_MEMORY);
             return function (cacheId){
                return {
                   module              : $cacheFactory(cacheId),
