@@ -1,9 +1,9 @@
 angular.module('KeepIt').provider('KeepItLocalStorageService', [
   'KeepItProvider',
   function (KeepItProvider) {
+    KeepItProvider.registerModule('KeepItLocalStorageService', KeepItProvider.types.PERSISTENT);
     return {
       $get: function () {
-        KeepItProvider.registerModule('KeepItLocalStorageService', KeepItProvider.types.PERSISTENT);
         return function (cacheId) {
           return {
             cacheId: cacheId,
