@@ -177,7 +177,6 @@ angular.module("KeepIt",[]).provider("KeepIt",
                                           },
             registeredModules : {},
             registerModule:function(moduleName,type){
-                console.log(type + " - " + moduleName)
                 KeepItProvider.registeredModules[type] = moduleName;
 
             },
