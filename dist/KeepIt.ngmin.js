@@ -84,10 +84,13 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
           return null;
         }
       },
-      getValue: function (key) {
+      getValue: function (key, defaultValue) {
         var cacheValue = this.get(key);
         if (cacheValue != null && angular.isDefined(cacheValue.value)) {
           return cacheValue.value;
+        }
+        if (angular.isDefined(defaultValue)) {
+          return defaultValue;
         }
         return null;
       },
@@ -134,6 +137,18 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
       }
     };
   }
+  function createModule($injector, cacheId, type) {
+    var moduleName = KeepItProvider.registeredModules[type], module = null;
+    $injector.invoke([
+      moduleName,
+      function (CacheModule) {
+        module = new CacheInterface(cacheId, type);
+        angular.extend(module, new CacheModule(cacheId));
+      }
+    ]);
+    return module;
+  }
+  ;
   KeepItProvider = {
     expiryCheckMethods: {
       ON_THE_FLY: 1,
@@ -193,14 +208,7 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
             }
             //create cache module if does not exist
             if (angular.isUndefined(modules[cacheId]) || modules[cacheId].isDestroyed) {
-              var moduleName = KeepItProvider.registeredModules[type];
-              $injector.invoke([
-                moduleName,
-                function (CacheModule) {
-                  modules[cacheId] = new CacheInterface(cacheId, type);
-                  angular.extend(modules[cacheId], new CacheModule(cacheId));
-                }
-              ]);
+              modules[cacheId] = createModule($injector, cacheId, type);
             } else if (modules[cacheId].type !== type) {
               throw 'The cache module your are trying to get already exists but is of a different type: ' + modules[cacheId].type + ' (asking for + ' + KeepItService.types[type] + ')';  //return;
             }
@@ -208,7 +216,7 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
           },
           convertType: function (cacheId, newType) {
             var currentModule = modules[cacheId], keys = currentModule.getAllKeys(), i = 0;
-            var newModule = this.getModule(cacheId, newType);
+            var newModule = createModule($injector, cacheId, newType);
             for (i = 0; i < keys.length; i++) {
               newModule._putRaw(keys[i], currentModule.get(keys[i]));
             }
