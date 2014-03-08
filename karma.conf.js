@@ -19,6 +19,7 @@ module.exports = function(config) {
     'src/KeepIt.js',
 	'src/Interfaces/KeepItCacheFactoryService.js',
 	'src/Interfaces/KeepItLocalStorageService.js',
+    'src/Interfaces/KeepItSessionStorageService.js',
     'test/**.spec.js'
 
     ],

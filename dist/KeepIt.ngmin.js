@@ -51,6 +51,11 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
       registeredKeys: {},
       registeredToRefresh: {},
       type: type,
+      isDestroyed: false,
+      _putRaw: function (key, rawValue) {
+        this.registeredKeys[key] = true;
+        return this._put(key, rawValue);
+      },
       put: function (key, value, ttl) {
         var toStore = {
             expireOn: null,
@@ -116,6 +121,7 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
       destroy: function () {
         this.registeredKeys = {};
         this._destroy();
+        this.isDestroyed = true;
       },
       validateInterface: function () {
         if (angular.isUndefined(this.cacheId)) {
@@ -137,7 +143,8 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
     defaultExpiryCheckMethod: null,
     types: {
       MEMORY: 1,
-      PERSISTENT: 2
+      PERSISTENT: 2,
+      SESSION: 3
     },
     registeredModules: {},
     registerModule: function (moduleName, type) {
@@ -176,7 +183,7 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
               type = KeepItService.types.MEMORY;
             }
             //create cache module if does not exist
-            if (angular.isUndefined(modules[cacheId])) {
+            if (angular.isUndefined(modules[cacheId]) || modules[cacheId].isDestroyed) {
               var moduleName = KeepItProvider.registeredModules[type];
               $injector.invoke([
                 moduleName,
@@ -189,6 +196,21 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
               throw 'The cache module your are trying to get already exists but is of a different type: ' + modules[cacheId].type + ' (asking for + ' + KeepItService.types[type] + ')';  //return;
             }
             return modules[cacheId];
+          },
+          convertType: function (cacheId, newType) {
+            var currentModule = modules[cacheId], keys = currentModule.getAllKeys(), i = 0;
+            var newModule = this.getModule(cacheId, newType);
+            for (i = 0; i < keys.length; i++) {
+              newModule._putRaw(keys[i], currentModule.get(keys[i]));
+            }
+            return modules[cacheId] = newModule;
+          },
+          destroyModule: function (module) {
+            if (angular.isString(module)) {
+              module = this.getModule(module);
+            }
+            module.destroy();
+            delete modules[module.cacheId];
           },
           clearAll: function () {
             angular.forEach(modules, function (module, cacheId) {

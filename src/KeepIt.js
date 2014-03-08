@@ -68,6 +68,20 @@ angular.module("KeepIt",[]).provider("KeepIt",
                 registeredKeys      : {}, //cacheFactory doesn't give access to existing keys, so we keep track in this array
                 registeredToRefresh : {}, //Keys registered here will be updated when module.refresh() is called
                 type                : type,
+                isDestroyed         : false, //set to true when destroy is called. Allows KeepItService to free the cacheId for overwriting this module when getModule is called after
+
+                /**
+                 * Allow to put data "as is" in the module. Useful when using get() containing expiry and preserve the current value instead of giving a TTL.
+                 * Mainly used for transferring values from a module type to another without changing it's expiry
+                 * @param key
+                 * @param rawValue
+                 * @returns {*}
+                 * @private
+                 */
+                _putRaw : function (key,rawValue){
+                    this.registeredKeys[key] = true;
+                    return this._put(key,rawValue);
+                },
                 put:function(key,value,ttl){
                     var toStore = {
                         expireOn: null,
@@ -143,6 +157,8 @@ angular.module("KeepIt",[]).provider("KeepIt",
                 destroy:function(){
                     this.registeredKeys = {};
                     this._destroy();
+                    this.isDestroyed = true;
+
                 },
                 validateInterface : function(){
 
@@ -173,7 +189,8 @@ angular.module("KeepIt",[]).provider("KeepIt",
             defaultExpiryCheckMethod    : null,
             types                       :{
                                              MEMORY: 1,
-                                             PERSISTENT: 2
+                                             PERSISTENT: 2,
+                                             SESSION : 3
                                           },
             registeredModules : {},
             registerModule:function(moduleName,type){
@@ -237,7 +254,7 @@ angular.module("KeepIt",[]).provider("KeepIt",
                         }
 
                         //create cache module if does not exist
-                        if (angular.isUndefined(modules[cacheId])){
+                        if (angular.isUndefined(modules[cacheId]) || modules[cacheId].isDestroyed){
                             var moduleName = KeepItProvider.registeredModules[type];
 
                             $injector.invoke([moduleName,function(CacheModule){
@@ -252,6 +269,31 @@ angular.module("KeepIt",[]).provider("KeepIt",
                         }
 
                         return modules[cacheId];
+                    },
+                    convertType : function (cacheId, newType){
+                        var currentModule = modules[cacheId],
+                            keys = currentModule.getAllKeys(),
+                            i = 0;
+
+                        var newModule = this.getModule(cacheId, newType);
+                        for (i = 0 ; i < keys.length; i++){
+                            newModule._putRaw(keys[i], currentModule.get(keys[i]));
+                        }
+
+                        return modules[cacheId] = newModule;
+                    },
+                    /**
+                     * Destroy a module - Clear the module data and remove it form the list
+                     * @param module {String|CacheInterface}
+                     */
+                    destroyModule:function(module){
+                        if (angular.isString(module)){
+                            module = this.getModule(module);
+                        }
+
+                        module.destroy();
+                        delete modules[module.cacheId];
+
                     },
                     /**
                      * Clears all the existing modules.

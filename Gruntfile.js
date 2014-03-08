@@ -31,7 +31,8 @@ module.exports = function (grunt) {
             files: {
                'dist/KeepIt.min.js': ['dist/KeepIt.ngmin.js'],
                'dist/KeepItCacheFactoryService.min.js': ['dist/KeepItCacheFactoryService.ngmin.js'],
-               'dist/KeepItLocalStorageService.min.js': ['dist/KeepItLocalStorageService.ngmin.js']
+               'dist/KeepItLocalStorageService.min.js': ['dist/KeepItLocalStorageService.ngmin.js'],
+               'dist/KeepItSessionStorage.min.js': ['dist/KeepItSessionStorage.ngmin.js']
             }
          }
       },

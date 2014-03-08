@@ -1,5 +1,5 @@
 /**
- * todo: simplify to test only KeepIt
+ * todo: Add tests for destroy and convert features
  */
 describe("KeepIt", function () {
 
@@ -69,9 +69,9 @@ describe("KeepIt", function () {
         });
 
         it("should implement CacheInterface",function(){
-            for (var i in _KeepIt.types){
-                if (_KeepIt.types.hasOwnProperty(i)){
-                    var cache = _KeepIt.getModule("testModule" + i ,_KeepIt.types[i]);
+            for (var i in _KeepIt.registeredModules){
+                if (_KeepIt.registeredModules.hasOwnProperty(i)){
+                    var cache = _KeepIt.getModule("testModule" + i ,_KeepIt.registeredModules[i]);
 
                         expect(typeof cache.validateInterface).toBe("function");
 
@@ -80,9 +80,9 @@ describe("KeepIt", function () {
         });
 
         it("should meet CacheInterface requirements",function(){
-            for (var i in _KeepIt.types){
-                if (_KeepIt.types.hasOwnProperty(i)){
-                    var cache = _KeepIt.getModule("testModule" + i ,_KeepIt.types[i]);
+            for (var i in _KeepIt.registeredModules){
+                if (_KeepIt.registeredModules.hasOwnProperty(i)){
+                    var cache = _KeepIt.getModule("testModule" + i ,_KeepIt.registeredModules[i]);
                     expect(typeof cache).toBeDefined();
                     expect(cache.validateInterface()).toBe(true);
 
@@ -91,9 +91,9 @@ describe("KeepIt", function () {
         });
 
         it("should store a value and be able to retrieve it",function(){
-            for (var i in _KeepIt.types){
-                if (_KeepIt.types.hasOwnProperty(i)){
-                    var cache = _KeepIt.getModule("testModule" + i ,_KeepIt.types[i]);
+            for (var i in _KeepIt.registeredModules){
+                if (_KeepIt.registeredModules.hasOwnProperty(i)){
+                    var cache = _KeepIt.getModule("testModule" + i ,_KeepIt.registeredModules[i]);
                     cache.expireCheckMethod = _KeepIt.expiryCheckMethods.TIMED;
                     cache.put(CACHE_KEY,CACHE_VALUE,10);
 
@@ -104,9 +104,9 @@ describe("KeepIt", function () {
         });
 
         it("should not invalidate timed cache if the expiry check cycle is not reached",function(){
-            for (var i in _KeepIt.types){
-                if (_KeepIt.types.hasOwnProperty(i)){
-                    var cache = _KeepIt.getModule("testModule" + i ,_KeepIt.types[i]);
+            for (var i in _KeepIt.registeredModules){
+                if (_KeepIt.registeredModules.hasOwnProperty(i)){
+                    var cache = _KeepIt.getModule("testModule" + i ,_KeepIt.registeredModules[i]);
                     cache.expireCheckMethod = _KeepIt.expiryCheckMethods.TIMED;
                     cache.put(CACHE_KEY,CACHE_VALUE,10);
                     _$interval.flush(EXPIRY_CYCLE-10);// check to run intervals that are before the cache check
@@ -117,9 +117,9 @@ describe("KeepIt", function () {
         });
 
         it("should not invalidate timed cache if the expiry check cycle is reached but ttl is not",function(){
-            for (var i in _KeepIt.types){
-                if (_KeepIt.types.hasOwnProperty(i)){
-                    var cache = _KeepIt.getModule("testModule" + i ,_KeepIt.types[i]);
+            for (var i in _KeepIt.registeredModules){
+                if (_KeepIt.registeredModules.hasOwnProperty(i)){
+                    var cache = _KeepIt.getModule("testModule" + i ,_KeepIt.registeredModules[i]);
                     cache.expireCheckMethod = _KeepIt.expiryCheckMethods.TIMED;
                     cache.put(CACHE_KEY,CACHE_VALUE,EXPIRY_CYCLE + 10);
 
@@ -131,13 +131,13 @@ describe("KeepIt", function () {
         });
 
         it("should invalidate timed cache if the expiry check cycle and ttl are reached",function(){
-            for (var i in _KeepIt.types){
-                if (_KeepIt.types.hasOwnProperty(i)){
+            for (var i in _KeepIt.registeredModules){
+                if (_KeepIt.registeredModules.hasOwnProperty(i)){
 
                     var cache,
                         value;
 
-                        cache = _KeepIt.getModule("testModule" + i ,_KeepIt.types[i]);
+                        cache = _KeepIt.getModule("testModule" + i ,_KeepIt.registeredModules[i]);
                         cache.expireCheckMethod = _KeepIt.expiryCheckMethods.TIMED;
                         cache.put(CACHE_KEY,CACHE_VALUE,EXPIRY_CYCLE);
                         //cannot use flushed interval beacuse the function itselfs checks for date().getTime() which is not fastfowarded
@@ -151,14 +151,14 @@ describe("KeepIt", function () {
             }
         });
         it("should not invalidate on the fly cache if the expiry is not reached",function(){
-            for (var i in _KeepIt.types){
-                if (_KeepIt.types.hasOwnProperty(i)){
+            for (var i in _KeepIt.registeredModules){
+                if (_KeepIt.registeredModules.hasOwnProperty(i)){
 
                     var cache,
                         value;
 
                     //_$rootScope.$apply();
-                    cache = _KeepIt.getModule("testModule" + i ,_KeepIt.types[i]);
+                    cache = _KeepIt.getModule("testModule" + i ,_KeepIt.registeredModules[i]);
                     cache.expireCheckMethod = _KeepIt.expiryCheckMethods.ON_THE_FLY;
                     cache.put(CACHE_KEY,CACHE_VALUE,EXPIRY_CYCLE + 1) ;
 
@@ -173,14 +173,14 @@ describe("KeepIt", function () {
         });
 
         it("should invalidate on the fly cache if the expiry is reached",function(){
-            for (var i in _KeepIt.types){
-                if (_KeepIt.types.hasOwnProperty(i)){
+            for (var i in _KeepIt.registeredModules){
+                if (_KeepIt.registeredModules.hasOwnProperty(i)){
 
                     var cache,
                         value;
 
                     //_$rootScope.$apply();
-                    cache = _KeepIt.getModule("testModule" + i ,_KeepIt.types[i]);
+                    cache = _KeepIt.getModule("testModule" + i ,_KeepIt.registeredModules[i]);
                     cache.expireCheckMethod = _KeepIt.expiryCheckMethods.ON_THE_FLY;
                     cache.put(CACHE_KEY,CACHE_VALUE,0);
 
@@ -192,14 +192,14 @@ describe("KeepIt", function () {
             }
         });
         it("should never invalidate cache when no TTL is given",function(){
-            for (var i in _KeepIt.types){
-                if (_KeepIt.types.hasOwnProperty(i)){
+            for (var i in _KeepIt.registeredModules){
+                if (_KeepIt.typregisteredModuleses.hasOwnProperty(i)){
 
                     var cache,
                         value;
 
                     //_$rootScope.$apply();
-                    cache = _KeepIt.getModule("testModule" + i ,_KeepIt.types[i]);
+                    cache = _KeepIt.getModule("testModule" + i ,_KeepIt.registeredModules[i]);
                     cache.expireCheckMethod = _KeepIt.expiryCheckMethods.ON_THE_FLY;
                     cache.put(CACHE_KEY,CACHE_VALUE);
                     value = cache.get(CACHE_KEY);
