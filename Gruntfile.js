@@ -17,13 +17,17 @@ module.exports = function (grunt) {
             dest: "dist/KeepIt.ngmin.js"
          },
          localStorage:{
-            src: [  "src/Interfaces/KeepItCacheFactoryService.js"],
-            dest: "dist/KeepItCacheFactoryService.ngmin.js"
+             src: [  "src/Interfaces/KeepItLocalStorageService.js"],
+             dest: "dist/KeepItLocalStorageService.ngmin.js"
+
+         },
+         sessionStorage:{
+             src: [  "src/Interfaces/KeepItSessionStorageService.js"],
+             dest: "dist/KeepItSessionStorageService.ngmin.js"
          },
          cacheFactory:{
-            src: [  "src/Interfaces/KeepItLocalStorageService.js"],
-            dest: "dist/KeepItLocalStorageService.ngmin.js"
-
+             src: [  "src/Interfaces/KeepItCacheFactoryService.js"],
+             dest: "dist/KeepItCacheFactoryService.ngmin.js"
          }
       },
       uglify: {
@@ -32,7 +36,7 @@ module.exports = function (grunt) {
                'dist/KeepIt.min.js': ['dist/KeepIt.ngmin.js'],
                'dist/KeepItCacheFactoryService.min.js': ['dist/KeepItCacheFactoryService.ngmin.js'],
                'dist/KeepItLocalStorageService.min.js': ['dist/KeepItLocalStorageService.ngmin.js'],
-               'dist/KeepItSessionStorage.min.js': ['dist/KeepItSessionStorage.ngmin.js']
+               'dist/KeepItSessionStorage.min.js': ['dist/KeepItLocalStorageService.ngmin.js']
             }
          }
       },
