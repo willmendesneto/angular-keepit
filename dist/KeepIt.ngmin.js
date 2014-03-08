@@ -182,6 +182,15 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
             if (angular.isUndefined(type)) {
               type = KeepItService.types.MEMORY;
             }
+            var isTypeRegistered = false;
+            angular.forEach(KeepItProvider.registeredModules, function (serviceName, serviceType) {
+              if (serviceType == type) {
+                isTypeRegistered = true;
+              }
+            });
+            if (!isTypeRegistered) {
+              throw 'Trying to load a module type that is not implemented (did you forgot to include the required interface ?';
+            }
             //create cache module if does not exist
             if (angular.isUndefined(modules[cacheId]) || modules[cacheId].isDestroyed) {
               var moduleName = KeepItProvider.registeredModules[type];
