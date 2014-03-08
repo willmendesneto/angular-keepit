@@ -14,16 +14,14 @@ A CacheInterface enhances any module that implements it to be able to use TTL.
 
 ## How does it work ?
 
-STILL TO BE IMPLEMENTED in the following feature set  : Cache module autoloading/configuration
-
 Include keepit as a dependency of your app, and also the caching modules you want to enable.
-At configuration runtime, the included cache modules will register themselves to KeepIt saying to which cache type they belong (IN_MEMORY,PERSITENT,SESSION).
+At configuration runtime, the included cache modules will register themselves to KeepIt saying to which cache type they belong (MEMORY,PERSITENT,SESSION).
 
 In your app, you inject keepit and use it like this:
 ```javascript
   var data,
   //instanciate module if not existing, else returns the existing module
-  myCacheModule = KeepIt.getModule('SomeCacheID',KeepIt.types.IN_MEMORY); 
+  myCacheModule = KeepIt.getModule('SomeCacheID',KeepIt.types.MEMORY); 
   
   data = myCacheModule.getValue("myData");
   
@@ -35,19 +33,30 @@ In your app, you inject keepit and use it like this:
   [...]
 ```
 
-If kept data you want to keep isbound to a scope, it can be automatically refreshed. In your controller:
+If kept data you want to keep isbound to a scope, it can be automatically refreshed. 
+In your controller:
 ```javascript
   myCacheModule = KeepIt.getModule('SomeCacheID',KeepIt.types.PERSITENT); 
   $scope.whateverModel = myCacheModule.getValue("myCacheKey");
   myCacheModule.syncToModel("myCacheKey",$scope,"whateverModel");
   
 ```
-In background, all it does is creating a $watch expression on the scope and update the cache accordingly.
+In background, all it does is creating a $watch expression on the scope and update the cache accordingly. It cannot use objects with deep monitoring right now, this as to be implemented/tested.
 
 ## What is necessary to create my own cache interface?
 
-(todo : add link to KeepItCacheFactoryService.js File)
-look for KeepItCacheFactoryService.js which is one of the simplest implementation I have, and it uses $cacheFactory which is well known to angular enthousiasts.
+look for [KeepItCacheFactoryService.js](src/Interfaces/KeepItCacheFactoryService.js) which is one of the simplest implementation I have, and it uses $cacheFactory which is well known to angular enthousiasts.
+
+#Configurations
+TODO
+
+Expire method (on the fly, timed)
+Expire check delay
+
+
+#Limitations
+
+As it is right know, there is no implementation of cache interface returning promises, which would allow you to have an external asynchroous service to store/retrieve values. This would be theoratically possible if the module retunrns promises as values, and the code calling it know that it's a promise. Doing so would probably work but beats the goal of having an uniformized way of using cache interfaces. This still need some thinking if it was to be implemented in the future. (I could always return promises but this would remove the simplicity of usage).
 
 #API Documentation
 TODO 
