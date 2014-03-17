@@ -1,16 +1,6 @@
 module.exports = function (grunt) {
    grunt.initConfig({
       pkg: grunt.file.readJSON('package.json'),
-      // uglify: {
-      //   options: {
-      //     banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
-      //   },
-      //   build: {
-      //     src: 'src/www/js/<%= pkg.name %>.js',
-      //     dest: 'build/www/js/<%= pkg.name %>.min.js'
-      //   }
-      // },
-
       ngmin: {
          module: {
             src: [  "src/KeepIt.js" ],

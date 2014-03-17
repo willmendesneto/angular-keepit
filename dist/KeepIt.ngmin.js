@@ -3,7 +3,7 @@
  * whole app. It also regroup memoization and persistent (for offline for example) cache inside a same service
  */
 angular.module('KeepIt', []).provider('KeepIt', function () {
-  var KeepItProvider, modules = {};
+  var KeepItProvider, KeepItService, modules = {};
   /**
         * This is the starting point for implementing a cache module. This objects has to be extended by
         * any cache module.
@@ -44,98 +44,109 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
       }
       return value;
     }
-    var module;
-    return module = {
-      cacheId: cacheId,
-      expireCheckMethod: KeepItProvider.defaultExpiryCheckMethod,
-      registeredKeys: {},
-      registeredToRefresh: {},
-      type: type,
-      isDestroyed: false,
-      _putRaw: function (key, rawValue) {
-        this.registeredKeys[key] = true;
-        return this._put(key, rawValue);
-      },
-      put: function (key, value, ttl) {
-        var toStore = {
-            expireOn: null,
-            value: value
-          };
-        if (angular.isDefined(ttl)) {
-          if (isNaN(ttl)) {
-            throw 'ttl must be a valid number. Specified value was : ' + ttl;  //return;
+    var module = {
+        cacheId: cacheId,
+        expireCheckMethod: KeepItProvider.defaultExpiryCheckMethod,
+        registeredKeys: {},
+        registeredToRefresh: {},
+        type: type,
+        isDestroyed: false,
+        init: function () {
+          if (type === KeepItProvider.types.PERSISTENT) {
+            //for persistent types, we must also preserve the registered keys so getAllKeys keeps returning all corresponding values.
+            this.registeredKeys = this.get('_KeyStore' + this.cacheId).getValue();
           }
-          var now = KeepItProvider.unitTestNow || new Date().getTime() / 1000;
-          toStore.expireOn = now + ttl;
-        }
-        this.registeredKeys[key] = true;
-        return this._put(key, toStore);
-      },
-      get: function (key) {
-        var data = this._get(key);
-        if (angular.isDefined(data) && data != null) {
-          if (this.expireCheckMethod == KeepItProvider.expiryCheckMethods.ON_THE_FLY) {
-            if (KeepItProvider.invalidateCacheKey(this, key, data)) {
-              return null;
+        },
+        _putRaw: function (key, rawValue) {
+          this.registeredKeys[key] = true;
+          return this._put(key, rawValue);
+        },
+        put: function (key, value, ttl) {
+          var toStore = {
+              expireOn: null,
+              value: value
+            };
+          if (angular.isDefined(ttl)) {
+            if (isNaN(ttl)) {
+              throw 'ttl must be a valid number. Specified value was : ' + ttl;  //return;
             }
+            var now = KeepItProvider.unitTestNow || new Date().getTime() / 1000;
+            toStore.expireOn = now + ttl;
           }
-          return data;
-        } else {
+          if (this.type === KeepItProvider.types.PERSISTENT) {
+            //for persistent types, we must also preserve the registered keys so getAllKeys keeps returning all corresponding values.
+            this.put('_KeyStore' + this.cacheId, this.registeredKeys);
+          }
+          this.registeredKeys[key] = true;
+          return this._put(key, toStore);
+        },
+        get: function (key) {
+          var data = this._get(key);
+          if (angular.isDefined(data) && data != null) {
+            if (this.expireCheckMethod == KeepItProvider.expiryCheckMethods.ON_THE_FLY) {
+              if (KeepItProvider.invalidateCacheKey(this, key, data)) {
+                return null;
+              }
+            }
+            return data;
+          } else {
+            return null;
+          }
+        },
+        getValue: function (key, defaultValue) {
+          var cacheValue = this.get(key);
+          if (cacheValue != null && angular.isDefined(cacheValue.value)) {
+            return cacheValue.value;
+          }
+          if (angular.isDefined(defaultValue)) {
+            return defaultValue;
+          }
           return null;
+        },
+        syncToModel: function (key, scope, modelPath, deepMonitoring) {
+          if (angular.isUndefined(deepMonitoring)) {
+            deepMonitoring = false;
+          }
+          scope.$watch(modelPath, function (value) {
+            module.put(key, value);
+          }, deepMonitoring);
+        },
+        registerToRefresh: function (key, scope, modelPath) {
+          module.registeredToRefresh.push({
+            key: key,
+            scope: scope,
+            modelPath: modelPath
+          });
+        },
+        refresh: function () {
+          angular.forEach(module.registeredToRefresh, function (toUpdate) {
+            module.put(toUpdate.key, getPropertyValueFromString(toUpdate.scope, toUpdate.modelPath));
+          });
+        },
+        getAllKeys: function () {
+          return this.registeredKeys;
+        },
+        remove: function (key) {
+          delete this.registeredKeys[key];
+          this._remove(key);
+        },
+        destroy: function () {
+          this.registeredKeys = {};
+          this._destroy();
+          this.isDestroyed = true;
+        },
+        validateInterface: function () {
+          if (angular.isUndefined(this.cacheId)) {
+            throw 'You must set a cache id';  //return false;
+          }
+          return !(!validateFunction(this, '_get', ['key']) || !validateFunction(this, '_put', [
+            'key',
+            'value'
+          ]) || !validateFunction(this, '_remove', ['key']) || !validateFunction(this, '_destroy', [] || !validateExpiryCheckMethod(this)));
         }
-      },
-      getValue: function (key, defaultValue) {
-        var cacheValue = this.get(key);
-        if (cacheValue != null && angular.isDefined(cacheValue.value)) {
-          return cacheValue.value;
-        }
-        if (angular.isDefined(defaultValue)) {
-          return defaultValue;
-        }
-        return null;
-      },
-      syncToModel: function (key, scope, modelPath, deepMonitoring) {
-        if (angular.isUndefined(deepMonitoring)) {
-          deepMonitoring = false;
-        }
-        scope.$watch(modelPath, function (value) {
-          module.put(key, value);
-        }, deepMonitoring);
-      },
-      registerToRefresh: function (key, scope, modelPath) {
-        module.registeredToRefresh.push({
-          key: key,
-          scope: scope,
-          modelPath: modelPath
-        });
-      },
-      refresh: function () {
-        angular.forEach(module.registeredToRefresh, function (toUpdate) {
-          module.put(toUpdate.key, getPropertyValueFromString(toUpdate.scope, toUpdate.modelPath));
-        });
-      },
-      getAllKeys: function () {
-        return this.registeredKeys;
-      },
-      remove: function (key) {
-        delete this.registeredKeys[key];
-        this._remove(key);
-      },
-      destroy: function () {
-        this.registeredKeys = {};
-        this._destroy();
-        this.isDestroyed = true;
-      },
-      validateInterface: function () {
-        if (angular.isUndefined(this.cacheId)) {
-          throw 'You must set a cache id';  //return false;
-        }
-        return !(!validateFunction(this, '_get', ['key']) || !validateFunction(this, '_put', [
-          'key',
-          'value'
-        ]) || !validateFunction(this, '_remove', ['key']) || !validateFunction(this, '_destroy', [] || !validateExpiryCheckMethod(this)));
-      }
-    };
+      };
+    module.init();
+    return module;
   }
   function createModule($injector, cacheId, type) {
     var moduleName = KeepItProvider.registeredModules[type], module = null;
@@ -189,7 +200,6 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
       '$rootScope',
       '$injector',
       function ($interval, $rootScope, $injector) {
-        var KeepItService;
         KeepItService = {
           expiryCheckMethods: KeepItProvider.expiryCheckMethods,
           types: KeepItProvider.types,

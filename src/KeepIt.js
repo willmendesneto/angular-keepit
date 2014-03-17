@@ -7,6 +7,7 @@ angular.module("KeepIt",[]).provider("KeepIt",
 
         ){
         var KeepItProvider,
+            KeepItService,
             modules = {};
 
 
@@ -61,15 +62,21 @@ angular.module("KeepIt",[]).provider("KeepIt",
                 return value;
 
             }
-            var module;
-            return module = {
+
+            var module = {
                 cacheId : cacheId,
                 expireCheckMethod : KeepItProvider.defaultExpiryCheckMethod,
                 registeredKeys      : {}, //cacheFactory doesn't give access to existing keys, so we keep track in this array
                 registeredToRefresh : {}, //Keys registered here will be updated when module.refresh() is called
                 type                : type,
                 isDestroyed         : false, //set to true when destroy is called. Allows KeepItService to free the cacheId for overwriting this module when getModule is called after
+                init : function(){
+                    if (type === KeepItProvider.types.PERSISTENT){
+                        //for persistent types, we must also preserve the registered keys so getAllKeys keeps returning all corresponding values.
+                        this.registeredKeys = this.get("_KeyStore" + this.cacheId).getValue();
 
+                    }
+                },
                 /**
                  * Allow to put data "as is" in the module. Useful when using get() containing expiry and preserve the current value instead of giving a TTL.
                  * Mainly used for transferring values from a module type to another without changing it's expiry
@@ -97,6 +104,10 @@ angular.module("KeepIt",[]).provider("KeepIt",
                         toStore.expireOn = now + ttl;
 
                     }
+                    if (this.type === KeepItProvider.types.PERSISTENT){
+                        //for persistent types, we must also preserve the registered keys so getAllKeys keeps returning all corresponding values.
+                        this.put("_KeyStore" + this.cacheId,this.registeredKeys);
+                    }
                     this.registeredKeys[key] = true;
                     return this._put(key,toStore);
 
@@ -105,12 +116,10 @@ angular.module("KeepIt",[]).provider("KeepIt",
 
                     var data = this._get(key);
                     if (angular.isDefined(data) && data != null){
-
                         if (this.expireCheckMethod  == KeepItProvider.expiryCheckMethods.ON_THE_FLY ){
                             if (KeepItProvider.invalidateCacheKey(this,key,data)){
                                 return null;
                             }
-
                         }
                         return data;
                     }else{
@@ -179,6 +188,9 @@ angular.module("KeepIt",[]).provider("KeepIt",
                         );
                 }
             };
+
+            module.init();
+            return module;
 
         }
 
@@ -249,8 +261,6 @@ angular.module("KeepIt",[]).provider("KeepIt",
                 $interval,
                 $rootScope,
                 $injector){
-
-                var KeepItService;
 
                 KeepItService = {
                     //expose provider settings to the service API
