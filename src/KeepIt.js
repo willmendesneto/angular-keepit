@@ -188,8 +188,6 @@ angular.module("KeepIt",[]).provider("KeepIt",
                         );
                 }
             };
-
-            module.init();
             return module;
 
         }
@@ -200,6 +198,7 @@ angular.module("KeepIt",[]).provider("KeepIt",
             $injector.invoke([moduleName,function(CacheModule){
                 module = new CacheInterface(cacheId,type );
                 angular.extend( module, new CacheModule(cacheId));
+                module.init();
             }]);
 
             return module;

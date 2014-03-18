@@ -145,7 +145,6 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
           ]) || !validateFunction(this, '_remove', ['key']) || !validateFunction(this, '_destroy', [] || !validateExpiryCheckMethod(this)));
         }
       };
-    module.init();
     return module;
   }
   function createModule($injector, cacheId, type) {
@@ -155,6 +154,7 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
       function (CacheModule) {
         module = new CacheInterface(cacheId, type);
         angular.extend(module, new CacheModule(cacheId));
+        module.init();
       }
     ]);
     return module;
