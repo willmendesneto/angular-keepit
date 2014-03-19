@@ -74,11 +74,11 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
             var now = KeepItProvider.unitTestNow || new Date().getTime() / 1000;
             toStore.expireOn = now + ttl;
           }
+          this.registeredKeys[key] = true;
           if (this.type === KeepItProvider.types.PERSISTENT) {
             //for persistent types, we must also preserve the registered keys so getAllKeys keeps returning all corresponding values.
             this._put('_KeyStore' + this.cacheId, this.registeredKeys);
           }
-          this.registeredKeys[key] = true;
           return this._put(key, toStore);
         },
         get: function (key) {
