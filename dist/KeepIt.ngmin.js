@@ -55,7 +55,7 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
           if (type === KeepItProvider.types.PERSISTENT) {
             //for persistent types, we must also preserve the registered keys so getAllKeys keeps returning all corresponding values.
             var keystore = this.get('_KeyStore' + this.cacheId);
-            this.registeredKeys = keystore !== null ? keystore.getValue() : {};
+            this.registeredKeys = keystore !== null ? keystore.value : {};
           }
         },
         _putRaw: function (key, rawValue) {
