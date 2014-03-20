@@ -79,6 +79,7 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
           return this._put(key, toStore);
         },
         get: function (key) {
+          var data = this._get(key);
           if (angular.isDefined(data) && data != null) {
             if (this.expireCheckMethod == KeepItProvider.expiryCheckMethods.ON_THE_FLY) {
               if (KeepItProvider.invalidateCacheKey(this, key, data)) {
