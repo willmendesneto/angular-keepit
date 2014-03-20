@@ -75,14 +75,10 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
             toStore.expireOn = now + ttl;
           }
           this.registeredKeys[key] = true;
-          if (this.type === KeepItProvider.types.PERSISTENT) {
-            //for persistent types, we must also preserve the registered keys so getAllKeys keeps returning all corresponding values.
-            this._put('_KeyStore' + this.cacheId, this.registeredKeys);
-          }
+          this.updateKeysIndex();
           return this._put(key, toStore);
         },
         get: function (key) {
-          var data = this._get(key);
           if (angular.isDefined(data) && data != null) {
             if (this.expireCheckMethod == KeepItProvider.expiryCheckMethods.ON_THE_FLY) {
               if (KeepItProvider.invalidateCacheKey(this, key, data)) {
@@ -124,11 +120,18 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
             module.put(toUpdate.key, getPropertyValueFromString(toUpdate.scope, toUpdate.modelPath));
           });
         },
+        updateKeysIndex: function () {
+          if (this.type === KeepItProvider.types.PERSISTENT) {
+            //for persistent types, we must also preserve the registered keys so getAllKeys keeps returning all corresponding values.
+            this._put('_KeyStore' + this.cacheId, this.registeredKeys);
+          }
+        },
         getAllKeys: function () {
           return this.registeredKeys;
         },
         remove: function (key) {
           delete this.registeredKeys[key];
+          this.updateKeysIndex();
           this._remove(key);
         },
         destroy: function () {
@@ -190,7 +193,7 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
       if (angular.isUndefined(stored)) {
         stored = module.get(key);
       }
-      if (stored.expireOn != null && now >= stored.expireOn) {
+      if (stored != null & stored.expireOn != null && now >= stored.expireOn) {
         module.remove(key);
         return true;
       }
