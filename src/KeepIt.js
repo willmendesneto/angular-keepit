@@ -255,7 +255,7 @@ angular.module("KeepIt",[]).provider("KeepIt",
                 if (angular.isUndefined(stored)){
                     stored = module.get(key);
                 }
-                if (stored != null & stored.expireOn != null && now >= stored.expireOn){
+                if (stored !== null && stored.expireOn !== null && now >= stored.expireOn){
                     module.remove(key);
 
                     return true;
