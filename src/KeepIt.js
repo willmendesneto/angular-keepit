@@ -195,6 +195,24 @@ angular.module("KeepIt",[]).provider("KeepIt",
                         !validateFunction(this,"_destroy",[] ||
                             !validateExpiryCheckMethod(this))
                         );
+                },
+                invalidateCache: function(){
+                    var keys = this.getAllKeys();
+
+                    angular.forEach(keys,function(value,key){
+                        this.invalidateCacheKey(key);
+                    });
+                },
+                invalidateCacheKey : function(key,stored){
+                    var now = KeepItProvider.unitTestNowCycleEnd || new Date().getTime() / 1000 ;
+                    if (angular.isUndefined(stored)){
+                        stored = this.get(key);
+                    }
+                    if (stored !== null && stored.expireOn !== null && now >= stored.expireOn){
+                        module.remove(key);
+                        return true;
+                    }
+                    return false;
                 }
             };
             return module;
@@ -237,11 +255,7 @@ angular.module("KeepIt",[]).provider("KeepIt",
              */
             invalidateCache:function(){
                 angular.forEach(modules,function(module,cacheId){
-                    var keys = module.getAllKeys();
-
-                    angular.forEach(keys,function(value,key){
-                        KeepItProvider.invalidateCacheKey(module,key);
-                    });
+                    module.invalidateCache();
                 });
 
             },
@@ -253,16 +267,9 @@ angular.module("KeepIt",[]).provider("KeepIt",
              * @returns {boolean} true if the cache was invalidated
              */
             invalidateCacheKey:function(module,key,stored){
-                var now = KeepItProvider.unitTestNowCycleEnd || new Date().getTime() / 1000 ;
-                if (angular.isUndefined(stored)){
-                    stored = module.get(key);
-                }
-                if (stored !== null && stored.expireOn !== null && now >= stored.expireOn){
-                    module.remove(key);
 
-                    return true;
-                }
-                return false;
+                return module.invalidateCacheKey(key,stored);
+
             },
 
             $get:function(
