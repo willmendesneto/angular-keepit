@@ -76,6 +76,8 @@ angular.module("KeepIt",[]).provider("KeepIt",
                         var keystore = this.get("_KeyStore" + this.cacheId);
                         this.registeredKeys = keystore !== null ? keystore : {};
 
+                        //invalidate keys that are expired on load
+                        this.invalidateCache();
                     }
                 },
                 /**

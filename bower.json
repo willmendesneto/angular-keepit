@@ -4,5 +4,16 @@
    "devDependencies" : {
       "angular" : "1.2.14",
       "angular-mocks" : "1.2.14"
-   }
+   },
+   "ignore" : [
+       "src",
+       "bower.json",
+       "Gruntfile.js",
+       "karma.conf.js",
+       "LICENSE",
+       "package.json",
+       "README.md",
+       "test",
+       "dist/*.ngmin.js"
+   ]
 }
