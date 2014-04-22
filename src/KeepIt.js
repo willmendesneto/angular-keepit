@@ -197,10 +197,10 @@ angular.module("KeepIt",[]).provider("KeepIt",
                         );
                 },
                 invalidateCache: function(){
-                    var keys = this.getAllKeys();
-
+                    var keys = this.getAllKeys(),
+                        module = this;
                     angular.forEach(keys,function(value,key){
-                        this.invalidateCacheKey(key);
+                        module.invalidateCacheKey(key);
                     });
                 },
                 invalidateCacheKey : function(key,stored){

@@ -152,9 +152,9 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
           ]) || !validateFunction(this, '_remove', ['key']) || !validateFunction(this, '_destroy', [] || !validateExpiryCheckMethod(this)));
         },
         invalidateCache: function () {
-          var keys = this.getAllKeys();
+          var keys = this.getAllKeys(), module = this;
           angular.forEach(keys, function (value, key) {
-            this.invalidateCacheKey(key);
+            module.invalidateCacheKey(key);
           });
         },
         invalidateCacheKey: function (key, stored) {
