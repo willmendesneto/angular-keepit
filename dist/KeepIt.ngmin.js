@@ -69,6 +69,9 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
               expireOn: null,
               value: value
             };
+          if (this.ttlOverride !== false && !isNaN(this.ttlOverride)) {
+            ttl = this.ttlOverride;
+          }
           if (angular.isDefined(ttl)) {
             if (isNaN(ttl)) {
               throw 'ttl must be a valid number. Specified value was : ' + ttl;  //return;
@@ -184,7 +187,13 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
     return module;
   }
   ;
+  /**
+         *
+         * ttlOverride Allows to override ttl, mainly for "debug mode" used along with defaultExpiryCheckMethod.ON_THE_FLY with a value of 0 - data will be put in the cache allowing to assert its format, but it will be invalidated on each access, forcing the app to refresh the data if set to 0.
+         * @type {{ttlOverride: boolean, expiryCheckMethods: {ON_THE_FLY: number, TIMED: number}, timedExpiryCheckCycle: number, defaultExpiryCheckMethod: null, types: {MEMORY: number, PERSISTENT: number, SESSION: number}, registeredModules: {}, registerModule: registerModule, invalidateCache: invalidateCache, invalidateCacheKey: invalidateCacheKey, $get: $get}}
+         */
   KeepItProvider = {
+    ttlOverride: false,
     expiryCheckMethods: {
       ON_THE_FLY: 1,
       TIMED: 2
