@@ -98,6 +98,10 @@ angular.module("KeepIt",[]).provider("KeepIt",
                         value : value
                     };
 
+                    if (this.ttlOverride !== false && !isNaN(this.ttlOverride)){
+                        ttl = this.ttlOverride;
+                    }
+
                     if (angular.isDefined(ttl)){
                         if (isNaN(ttl)){
                             throw("ttl must be a valid number. Specified value was : " + ttl);
@@ -231,8 +235,15 @@ angular.module("KeepIt",[]).provider("KeepIt",
             return module;
         };
 
+        /**
+         *
+         * ttlOverride Allows to override ttl, mainly for "debug mode" used along with defaultExpiryCheckMethod.ON_THE_FLY with a value of 0 - data will be put in the cache allowing to assert its format, but it will be invalidated on each access, forcing the app to refresh the data if set to 0.
+         * @type {{ttlOverride: boolean, expiryCheckMethods: {ON_THE_FLY: number, TIMED: number}, timedExpiryCheckCycle: number, defaultExpiryCheckMethod: null, types: {MEMORY: number, PERSISTENT: number, SESSION: number}, registeredModules: {}, registerModule: registerModule, invalidateCache: invalidateCache, invalidateCacheKey: invalidateCacheKey, $get: $get}}
+         */
         KeepItProvider = {
 
+
+            ttlOverride : false,
             expiryCheckMethods          : {
                                             ON_THE_FLY: 1, //check for expiry each time the cache is accessed or expiryCycle is reached
                                             TIMED: 2 //run at timedExpiryCheckCycle interval on all cached object
@@ -247,7 +258,6 @@ angular.module("KeepIt",[]).provider("KeepIt",
             registeredModules : {},
             registerModule:function(moduleName,type){
                 KeepItProvider.registeredModules[type] = moduleName;
-
             },
             /**
              * Used to manually check expired cache. fastForward is a delay in seconds for which
