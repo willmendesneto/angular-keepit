@@ -98,8 +98,8 @@ angular.module("KeepIt",[]).provider("KeepIt",
                         value : value
                     };
 
-                    if (this.ttlOverride !== false && !isNaN(this.ttlOverride)){
-                        ttl = this.ttlOverride;
+                    if (KeepItProvider.ttlOverride !== false && !isNaN(KeepItProvider.ttlOverride)){
+                        ttl = KeepItProvider.ttlOverride;
                     }
 
                     if (angular.isDefined(ttl)){
