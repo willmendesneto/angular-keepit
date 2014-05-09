@@ -143,6 +143,10 @@ angular.module('KeepIt', []).provider('KeepIt', function () {
         destroy: function () {
           this.registeredKeys = {};
           this._destroy();
+          //delete key index
+          if (this.type === KeepItProvider.types.PERSISTENT) {
+            this._remove('_KeyStore' + this.cacheId);
+          }
           this.isDestroyed = true;
         },
         validateInterface: function () {
